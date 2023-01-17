@@ -46,7 +46,13 @@ class VirtualBox(Machinery):
         ret = {}
         lines = self._call("showvminfo", self.name, machinereadable=True)
         for line in lines.split("\n"):
-            key, value = line.split("=", 1)
+            split = line.split("=", 1)
+
+            if len(split) == 1:
+                ret[split[0]] = True
+                continue
+
+            key, value = split
 
             if value.startswith('"') and value.endswith('"'):
                 value = value[1:-1]
