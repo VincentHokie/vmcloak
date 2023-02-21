@@ -141,13 +141,14 @@ def clone(name, outname):
 @click.option("--python-version", default="2.7.13", help="Which Python version do we install on the guest?")
 @click.option("--paravirtprovider", default="default",
               help="Select paravirtprovider for Virtualbox none|default|legacy|minimal|hyperv|kvm")
+@click.option("--vdi-file", default=None, help="Absolute path to a VDI file. Initialize it as though it was bootstrapped by vmcloak already")
 @click.option("-d", "--debug", is_flag=True, help="Install Virtual Machine in debug mode.")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose logging.")
 def init(name, winxp, win7x86, win7x64, win81x86, win81x64, win10x86, win10x64,
          product, vm, iso_mount, serial_key, ip, port, adapter, netmask,
          gateway, dns, cpus, ramsize, vramsize, hddsize, tempdir, resolution,
-         vm_visible, vrde, vrde_port, python_version, paravirtprovider, debug,
-         verbose):
+         vm_visible, vrde, vrde_port, python_version, paravirtprovider, vdi_file,
+         debug, verbose):
 
     if verbose:
         log.setLevel(logging.INFO)
@@ -161,7 +162,7 @@ def init(name, winxp, win7x86, win7x64, win81x86, win81x64, win10x86, win10x64,
         log.error("Image already exists: %s", name)
         exit(1)
 
-    if vm not in VMCLOAK_VM_MODES:
+    if not vdi_file and vm not in VMCLOAK_VM_MODES:
         log.error("Only VirtualBox Machinery or iso is supported at this point.")
         exit(1)
 
@@ -199,6 +200,20 @@ def init(name, winxp, win7x86, win7x64, win81x86, win81x64, win10x86, win10x64,
             "--win81x86, --win81x64, --win10x86, --win10x64."
         )
         exit(1)
+
+    if vdi_file:
+        outpath = os.path.join(image_path, "%s.vdi" % name)
+        shutil.move(vdi_file, outpath)
+
+        log.info("Added image %r to the repository.", name)
+        session.add(Image(name=name, path=outpath, osversion=osversion,
+                        servicepack="%s" % h.service_pack, mode="normal",
+                        ipaddr=ip, port=port, adapter=adapter,
+                        netmask=netmask, gateway=gateway,
+                        cpus=cpus, ramsize=ramsize, vramsize=vramsize, vm="%s" % vm,
+                        paravirtprovider=paravirtprovider))
+        session.commit()
+        return
 
     mount = h.pickmount(iso_mount)
     if not mount:
@@ -351,8 +366,8 @@ def install(name, dependencies, vm_visible, vrde, vrde_port, recommended, debug)
 
     for dependency, version in deps:
         if dependency not in vmcloak.dependencies.names:
-            log.error("Unknown dependency %s..", dependency)
-            break
+            log.error("Unknown dependency %s.. Skipping.", dependency)
+            continue
 
         if version:
             log.info("Installing dependency %s %s..", dependency, version)
@@ -406,8 +421,8 @@ def install(name, dependencies, vm_visible, vrde, vrde_port, recommended, debug)
 
             d(h, m, a, image, version, settings).run()
         except DependencyError:
-            log.error("The dependency %s returned an error..", dependency)
-            break
+            log.error("The dependency %s returned an error... Skipping.", dependency)
+            continue
 
     if image.vm == "virtualbox":
         a.shutdown()
