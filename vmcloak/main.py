@@ -141,13 +141,13 @@ def clone(name, outname):
 @click.option("--python-version", default="2.7.13", help="Which Python version do we install on the guest?")
 @click.option("--paravirtprovider", default="default",
               help="Select paravirtprovider for Virtualbox none|default|legacy|minimal|hyperv|kvm")
-@click.option("--vdi-file", default=None, help="Absolute path to a VDI file. Initialize it as though it was bootstrapped by vmcloak already")
+@click.option("--vdifile", default=None, help="Absolute path to a VDI file. Initialize it as though it was bootstrapped by vmcloak already")
 @click.option("-d", "--debug", is_flag=True, help="Install Virtual Machine in debug mode.")
 @click.option("-v", "--verbose", is_flag=True, help="Verbose logging.")
 def init(name, winxp, win7x86, win7x64, win81x86, win81x64, win10x86, win10x64,
          product, vm, iso_mount, serial_key, ip, port, adapter, netmask,
          gateway, dns, cpus, ramsize, vramsize, hddsize, tempdir, resolution,
-         vm_visible, vrde, vrde_port, python_version, paravirtprovider, vdi_file,
+         vm_visible, vrde, vrde_port, python_version, paravirtprovider, vdifile,
          debug, verbose):
 
     if verbose:
@@ -162,7 +162,7 @@ def init(name, winxp, win7x86, win7x64, win81x86, win81x64, win10x86, win10x64,
         log.error("Image already exists: %s", name)
         exit(1)
 
-    if not vdi_file and vm not in VMCLOAK_VM_MODES:
+    if not vdifile and vm not in VMCLOAK_VM_MODES:
         log.error("Only VirtualBox Machinery or iso is supported at this point.")
         exit(1)
 
@@ -201,9 +201,9 @@ def init(name, winxp, win7x86, win7x64, win81x86, win81x64, win10x86, win10x64,
         )
         exit(1)
 
-    if vdi_file:
+    if vdifile:
         outpath = os.path.join(image_path, "%s.vdi" % name)
-        shutil.move(vdi_file, outpath)
+        shutil.move(vdifile, outpath)
 
         log.info("Added image %r to the repository.", name)
         session.add(Image(name=name, path=outpath, osversion=osversion,
