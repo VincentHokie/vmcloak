@@ -115,3 +115,11 @@ ITES Project at Avira, thanks to **Thorsten Sick**. Many thanks to
 **Rasmus Männa** for lots of great contributions lately.
 
 [![Coverage Status](https://coveralls.io/repos/github/jbremer/vmcloak/badge.svg)](https://coveralls.io/github/jbremer/vmcloak)
+
+
+Differences
+-----------
+
+- Prevent init from crashing when it meets a configuration that cannnot be split by =
+- When a dependency doesn't get installed correctly, gracefully try the next one in the list
+- Allow vmcloack init given a VDI file
