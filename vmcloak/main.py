@@ -365,6 +365,7 @@ def install(name, dependencies, vm_visible, vrde, vrde_port, recommended, debug)
             deps.append((dependency, None))
 
     for dependency, version in deps:
+        log.info("Installing %s, %s ...", dependency, version)
         if dependency not in vmcloak.dependencies.names:
             log.error("Unknown dependency %s.. Skipping.", dependency)
             continue
@@ -424,12 +425,18 @@ def install(name, dependencies, vm_visible, vrde, vrde_port, recommended, debug)
             log.error("The dependency %s returned an error... Skipping.", dependency)
             continue
 
+    log.info("Finished going through deps")
     if image.vm == "virtualbox":
+        log.info("Shutting down vm")
         a.shutdown()
+        log.info("Waiting for shutdown state")
         m.wait_for_state(shutdown=True)
 
+        log.info("Removing HD")
         m.remove_hd()
+        log.info("Compact HD")
         m.compact_hd(image.path)
+        log.info("Deleting VM")
         m.delete_vm()
     else:
         a.reboot()
@@ -494,29 +501,40 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
                 hostname, adapter, vm_visible, vrde, vrde_port, interactive):
     m, h = initvm(image, name=vmname, multi=True, ramsize=ramsize, cpus=cpus)
 
+    log.info("Inside do_snapshot...")
     if vrde:
         m.vrde(port=vrde_port)
 
+    log.info("Starting VM...")
     m.start_vm(visible=vm_visible)
 
+    log.info("Waiting for host...")
     wait_for_host(image.ipaddr, image.port)
+    log.info("Agent creation...")
     a = Agent(image.ipaddr, image.port)
+    log.info("Agent ping...")
     a.ping()
 
+    log.info("Assigning hostname...")
     # Assign a new hostname.
     a.hostname(hostname)
+    log.info("Rebooting...")
     a.reboot()
+    log.info("Killing...")
     a.kill()
 
     # Wait for the reboot to kick in.
     time.sleep(10)
+    log.info("After sleeping...")
     wait_for_host(image.ipaddr, image.port)
+    log.info("Waiting for host...")
     a.ping()
 
     if resolution:
         width, height = resolution.split("x")
         a.resolution(width, height)
 
+    log.info("After if resolution...")
     if interactive:
         a.upload("C:\\vmcloak\\interactive.txt",
                  "Please make your final changes to this VM. When you're"
@@ -527,11 +545,16 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
         log.info("When you're done close the spawned notepad process in the VM to take the final snapshot.")
         a.execute("notepad.exe C:\\vmcloak\\interactive.txt", async=False)
 
+    log.info("a.remove...")
     a.remove("C:\\vmcloak")
+    log.info("a.static_ip...")
     a.static_ip(ipaddr, image.netmask, image.gateway, h.interface)
+    log.info("m.snapshot...")
     m.snapshot("vmcloak", "Snapshot created by VMCloak.")
+    log.info("m.stopvm...")
     m.stopvm()
 
+    log.info("Creating snapshit...")
     # Create a database entry for this snapshot.
     snapshot = Snapshot(image_id=image.id, vmname=vmname, ipaddr=ipaddr,
                         port=image.port, hostname=hostname)
@@ -557,6 +580,7 @@ def snapshot(name, vmname, ipaddr, resolution, ramsize, cpus, hostname,
     if debug:
         log.setLevel(logging.DEBUG)
 
+    log.info("Starting session...")
     session = Session()
 
     if adapter:
@@ -568,11 +592,13 @@ def snapshot(name, vmname, ipaddr, resolution, ramsize, cpus, hostname,
         )
         exit(1)
 
+    log.info("Image query...")
     image = session.query(Image).filter_by(name=name).first()
     if not image:
         log.error("Image not found: %s", name)
         exit(1)
 
+    log.info("session committing multiattach...")
     # From now on this image is multiattach.
     image.mode = "multiattach"
     session.commit()
@@ -592,7 +618,9 @@ def snapshot(name, vmname, ipaddr, resolution, ramsize, cpus, hostname,
             )
             exit(1)
 
+        log.info("Looping through count a running do snapshot...")
         for x in xrange(count):
+            log.info("Running do_snapshot...")
             snapshot = do_snapshot(
                 image, "%s%d" % (vmname, x + 1), ipaddr, resolution,
                 ramsize, cpus, hostname, adapter, vm_visible,
@@ -600,12 +628,14 @@ def snapshot(name, vmname, ipaddr, resolution, ramsize, cpus, hostname,
             )
             session.add(snapshot)
 
+            log.info("Done running do_snapshot...")
             # TODO Implement some limits to make sure that the IP address does
             # not "exceed" its provided subnet (and thus also require the user
             # to specify an IP range, rather than an IP address).
             ipaddr = ipaddr_increase(ipaddr)
             hostname = random_string(8, 16)
 
+    log.info("Session committing...")
     session.commit()
 
 @main.command()
