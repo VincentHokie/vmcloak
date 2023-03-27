@@ -103,6 +103,7 @@ class Agent(object):
             "netsh interface ip set address name=\"%s\" static %s %s %s 1"
         ) % (interface, ipaddr, netmask, gateway)
 
+        log.debug("Executing command in VM: %s", command)
         try:
             session = requests.Session()
             session.trust_env = False
@@ -111,8 +112,10 @@ class Agent(object):
                 "http://%s:%s/execute" % (self.ipaddr, self.port),
                 data={"command": command}, timeout=5
             )
-        except requests.exceptions.ReadTimeout:
-            pass
+        except requests.exceptions.ReadTimeout as e:
+            log.debug("Error executing command in VM: %s", e)
+        except Exception as e:
+            log.debug("Error executing command in VM: %s", e)
 
         # Now wait until the Agent is reachable on the new IP address.
         wait_for_host(ipaddr, self.port)
