@@ -529,9 +529,9 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
     wait_for_host(image.ipaddr, image.port)
     log.info("Waiting for host...")
     ping = a.ping()
-    log.info("ping response: %s", ping)
+    log.info("ping response: %s", ping.json())
     ipconfig = a.execute("ipconfig")
-    log.info("ipconfig response: %s", ipconfig)
+    log.info("ipconfig response: %s", ipconfig.json())
 
     if resolution:
         width, height = resolution.split("x")
@@ -552,10 +552,6 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
     a.remove("C:\\vmcloak")
     log.info("a.static_ip...")
     a.static_ip(ipaddr, image.netmask, image.gateway, h.interface)
-    ping = a.ping()
-    log.info("ping response: %s", ping)
-    ipconfig = a.execute("ipconfig")
-    log.info("ipconfig response: %s", ipconfig)
     log.info("m.snapshot...")
     m.snapshot("vmcloak", "Snapshot created by VMCloak.")
     log.info("m.stopvm...")
