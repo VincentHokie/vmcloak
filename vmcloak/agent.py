@@ -117,9 +117,9 @@ class Agent(object):
         except Exception as e:
             log.debug("Error executing command in VM: %s", e)
 
-        ping = a.ping()
+        ping = self.ping()
         log.info("ping response: %s", ping.json())
-        ipconfig = a.execute("ipconfig")
+        ipconfig = self.execute("ipconfig")
         log.info("ipconfig response: %s", ipconfig.json())
 
         # Now wait until the Agent is reachable on the new IP address.
