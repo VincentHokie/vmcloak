@@ -110,7 +110,7 @@ class Agent(object):
             session.proxies = None
             session.post(
                 "http://%s:%s/execute" % (self.ipaddr, self.port),
-                data={"command": command}, timeout=5
+                data={"command": command}, timeout=30
             )
         except requests.exceptions.ReadTimeout as e:
             log.debug("Error executing command in VM: %s", e)
