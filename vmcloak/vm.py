@@ -80,6 +80,23 @@ class VirtualBox(Machinery):
         return self._call("createvm", name=self.name,
                           basefolder=vms_path, register=True)
 
+    def update_static_ip(self, vmname, command):
+
+        cmd = [self.vboxmanage] + [
+            "guestcontrol", vmname, "run", "--username Administrator",
+            "--password cuckoo", "--exe C:\\windows\\system32\\cmd.exe",
+            "-- cmd.exe /C %s" % command
+        ]
+
+        try:
+            log.debug("Running command: %s", cmd)
+            ret = subprocess.check_output(cmd)
+        except Exception as e:
+            log.error("[-] Error running command: %s", e)
+            raise CommandError
+
+        return ret.strip()
+
     def delete_vm(self):
         self._call("unregistervm", self.name, delete=True)
 

@@ -97,7 +97,7 @@ class Agent(object):
         # self.execute(cmdline % args, shell=True)
         self.execute(cmdline % args)
 
-    def static_ip(self, ipaddr, netmask, gateway, interface):
+    def static_ip(self, vm, vmname, ipaddr, netmask, gateway, interface):
         """Change the IP address of this machine."""
         command = (
             "netsh interface ip set address name=\"%s\" static %s %s %s 1"
@@ -105,6 +105,8 @@ class Agent(object):
 
         log.debug("Executing command in VM: %s", command)
         try:
+            # response = vm.update_static_ip(vmname, command)
+            # log.debug("update_static_ip response: %s", response)
             session = requests.Session()
             session.trust_env = False
             session.proxies = None
