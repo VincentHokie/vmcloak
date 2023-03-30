@@ -425,18 +425,12 @@ def install(name, dependencies, vm_visible, vrde, vrde_port, recommended, debug)
             log.error("The dependency %s returned an error... Skipping.", dependency)
             continue
 
-    log.info("Finished going through deps")
     if image.vm == "virtualbox":
-        log.info("Shutting down vm")
         a.shutdown()
-        log.info("Waiting for shutdown state")
         m.wait_for_state(shutdown=True)
 
-        log.info("Removing HD")
         m.remove_hd()
-        log.info("Compact HD")
         m.compact_hd(image.path)
-        log.info("Deleting VM")
         m.delete_vm()
     else:
         a.reboot()
@@ -518,16 +512,12 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
     # Wait for the reboot to kick in.
     time.sleep(10)
     wait_for_host(image.ipaddr, image.port)
-    ping = a.ping()
-    log.info("ping response: %s", ping.json())
-    ipconfig = a.execute("ipconfig")
-    log.info("ipconfig response: %s", ipconfig.json())
+    a.ping()
 
     if resolution:
         width, height = resolution.split("x")
         a.resolution(width, height)
 
-    log.info("After if resolution...")
     if interactive:
         a.upload("C:\\vmcloak\\interactive.txt",
                  "Please make your final changes to this VM. When you're"
@@ -539,8 +529,7 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
         a.execute("notepad.exe C:\\vmcloak\\interactive.txt", async=False)
 
     a.remove("C:\\vmcloak")
-    log.info("a.static_ip...")
-    a.static_ip(m, vmname, ipaddr, image.netmask, image.gateway, h.interface)
+    a.static_ip(ipaddr, image.netmask, image.gateway, h.interface)
     m.snapshot("vmcloak", "Snapshot created by VMCloak.")
     m.stopvm()
 
@@ -605,7 +594,6 @@ def snapshot(name, vmname, ipaddr, resolution, ramsize, cpus, hostname,
             exit(1)
 
         for x in xrange(count):
-            log.info("Running do_snapshot...")
             snapshot = do_snapshot(
                 image, "%s%d" % (vmname, x + 1), ipaddr, resolution,
                 ramsize, cpus, hostname, adapter, vm_visible,
