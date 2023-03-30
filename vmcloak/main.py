@@ -540,7 +540,7 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
 
     a.remove("C:\\vmcloak")
     log.info("a.static_ip...")
-    a.static_ip(m, ipaddr, image.netmask, image.gateway, h.interface)
+    a.static_ip(m, vmname, ipaddr, image.netmask, image.gateway, h.interface)
     m.snapshot("vmcloak", "Snapshot created by VMCloak.")
     m.stopvm()
 
