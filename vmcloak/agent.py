@@ -119,15 +119,9 @@ class Agent(object):
         except Exception as e:
             log.debug("Error executing command in VM: %s", e)
 
-        self.ipaddr = ipaddr
-
-        ping = self.ping()
-        log.info("ping response: %s", ping.json())
-        ipconfig = self.execute("ipconfig")
-        log.info("ipconfig response: %s", ipconfig.json())
-
         # Now wait until the Agent is reachable on the new IP address.
         wait_for_host(ipaddr, self.port)
+        self.ipaddr = ipaddr
 
     def dns_server(self, ipaddr):
         """Set the IP address of the DNS server."""
