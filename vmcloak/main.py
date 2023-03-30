@@ -544,7 +544,6 @@ def do_snapshot(image, vmname, ipaddr, resolution, ramsize, cpus,
     m.snapshot("vmcloak", "Snapshot created by VMCloak.")
     m.stopvm()
 
-    log.info("Creating snapshit...")
     # Create a database entry for this snapshot.
     snapshot = Snapshot(image_id=image.id, vmname=vmname, ipaddr=ipaddr,
                         port=image.port, hostname=hostname)
